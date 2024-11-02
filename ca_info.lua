@@ -13,15 +13,25 @@ local function is_int_property(key)
     return table.concat(INT_PROPERTIES):find(key) ~= nil
 end
 
+local function set_defaults(entry)
+    return {
+        pcid = entry.pcid or nil,
+        rsrp = entry.rsrp or nil,
+        rsrq = entry.rsrq or nil,
+        rssi = entry.rssi or nil,
+        rssnr = entry.rssnr or nil,
+        primary = entry.primary ~= nil and entry.primary or nil
+    }
+end
+
 local function parse_ca_info(output)
     local ca_entries = {}
     local current_ca_data = {}
 
     for line in output:gmatch("[^\r\n]+") do
-
         if line:match("^CA %d+") then
             if next(current_ca_data) then
-                table.insert(ca_entries, current_ca_data)
+                table.insert(ca_entries, set_defaults(current_ca_data))
                 current_ca_data = {}
             end
         else
@@ -45,7 +55,7 @@ local function parse_ca_info(output)
     end
 
     if next(current_ca_data) then
-        table.insert(ca_entries, current_ca_data)
+        table.insert(ca_entries, set_defaults(current_ca_data))
     end
 
     return ca_entries
@@ -57,7 +67,6 @@ local function get_cli_output()
     handle:close()
     return output
 end
-
 
 function handle_data_request()
     return {
